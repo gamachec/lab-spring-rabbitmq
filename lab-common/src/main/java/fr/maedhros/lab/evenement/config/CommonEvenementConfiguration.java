@@ -119,7 +119,7 @@ public class CommonEvenementConfiguration implements InitializingBean, Applicati
 
     private static void verifierTypeRetour(final Class<?> typeRetour) {
         if (!typeRetour.equals(Void.TYPE)) {
-            throw new IllegalArgumentException("Un " + EvenementHandler.class.getSimpleName() + " doit retourner ne doit pas avoir de retour");
+            throw new IllegalArgumentException("Un " + EvenementHandler.class.getSimpleName() + " ne doit pas avoir de retour");
         }
     }
 
