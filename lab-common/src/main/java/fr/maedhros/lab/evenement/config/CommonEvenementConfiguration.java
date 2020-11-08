@@ -84,7 +84,7 @@ public class CommonEvenementConfiguration implements InitializingBean, Applicati
         final Parameter parametre = methodEvenementHandler.getParameters()[0];
         verifierTypeParametre(parametre);
         final Class<?> typeEvenement = parametre.getType();
-        final Queue queue = amqpAdminService.declarerQueue(typeEvenement);
+        final Queue queue = amqpAdminService.initialiserQueue(typeEvenement);
 
         demarrerHandlerPourQueue(methodEvenementHandler, queue);
     }

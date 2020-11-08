@@ -9,15 +9,11 @@ import fr.maedhros.lab.evenement.service.interne.AmqpAdminService;
 import fr.maedhros.lab.evenement.service.interne.JetonMessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.core.AmqpTemplate;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class EvenementService {
-
-    @Value("${spring.application.name}")
-    private String nomGroupeConsommateur;
 
     private final AmqpTemplate amqpTemplate;
 

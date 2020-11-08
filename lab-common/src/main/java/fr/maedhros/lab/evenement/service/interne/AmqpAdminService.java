@@ -30,19 +30,19 @@ public class AmqpAdminService {
         amqpAdmin.declareExchange(exchange);
     }
 
-    public Queue declarerQueue(final Class<?> evenement) {
+    public Queue initialiserQueue(final Class<?> evenement) {
         final var nomEvenement = evenement.getSimpleName();
-        final Queue queuePrincipale = declarerQueue(nomEvenement);
+        final Queue queuePrincipale = initialiserQueuePrincipale(nomEvenement);
 
         if (evenement.isAnnotationPresent(EvenementAvecRejeuPlanifie.class)) {
             final int delaisSecondes = evenement.getAnnotation(EvenementAvecRejeuPlanifie.class).delaisSecondes();
-            initialiserQueueRetry(nomEvenement, delaisSecondes);
+            initialiserQueueRejeu(nomEvenement, delaisSecondes);
         }
 
         return queuePrincipale;
     }
 
-    private Queue declarerQueue(final String nomEvenement) {
+    private Queue initialiserQueuePrincipale(final String nomEvenement) {
         final var nomQueuePrincipale = nomQueuePrincipale(nomEvenement);
 
         log.info("Déclaration de la queue {}", nomQueuePrincipale);
@@ -55,7 +55,7 @@ public class AmqpAdminService {
         return queuePrincipale;
     }
 
-    private void initialiserQueueRetry(final String nomEvenement, final int delaisSecondes) {
+    private void initialiserQueueRejeu(final String nomEvenement, final int delaisSecondes) {
         final var nomQueuePrincipale = nomQueuePrincipale(nomEvenement);
         final var nomQueueRejeu = nomQueueRejeu(nomEvenement);
 
@@ -66,11 +66,11 @@ public class AmqpAdminService {
             .ttl(delaisSecondes * 1000)//
             .build();
 
-        final var bindingRetry = new Binding(nomQueueRejeu, Binding.DestinationType.QUEUE, nomEvenement, cleRoutageRejeu(), null);
+        final var bindingRejeu = new Binding(nomQueueRejeu, Binding.DestinationType.QUEUE, nomEvenement, cleRoutageRejeu(), null);
         final var bindingReprise = new Binding(nomQueuePrincipale, Binding.DestinationType.QUEUE, nomEvenement, nomGroupeConsommateur, null);
 
         amqpAdmin.declareQueue(queueRetry);
-        amqpAdmin.declareBinding(bindingRetry);
+        amqpAdmin.declareBinding(bindingRejeu);
         amqpAdmin.declareBinding(bindingReprise);
     }
 
