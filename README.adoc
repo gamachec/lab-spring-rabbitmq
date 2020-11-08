@@ -1,0 +1,78 @@
+== Lab Spring/RabbitMQ
+
+POC d'une librairie permettant d'utiliser RabbitMQ avec des backs Spring Boot & Spring classiques
+
+Contraintes du POC :
+
+- Pas de dépendance directe à amqp/rabbitmq dans les clients.
+- Auto-discover des queues et des exchanges (pas d'action d'administration, pas de bean de configuration des Queues, Exchange, Binding).
+- Les messages doivent pouvoir être traités par différents groupes de consommateur (principe de shared subscription).
+- Le message doit pouvoir contenir des informations de session (utilisateur et identifiant de session) automatiquement récupéré et injecté, de façon transparent pour le client.
+- Service permettant de rejouer des messages dans le futur (avec un délais).
+- La planification d'un rejeu par un consommateur ne doit pas déclencher de rejeu pour l'ensemble des groupes (uniquement pour celui qui a demandé un rejeu)
+
+== Utilisation
+
+Démarrer un rabbitMQ en local :
+
+```
+docker run -it -p 15672:15672 -p 5672:5672 --hostname poc-rabbit --name poc-rabbit rabbitmq:3-management
+```
+
+=== Evenements
+
+L'auto-détection des Queues et Exchange est basée sur l'utilisation de classes implémentant `Evenement` (dans lab-common).
+
+- Un Exchange est créé portant le nom de chaque classe implémentant `Evenement`.
+- Une queue par application est crée pour chaque évenement, portant le nom `<application>.<classe>`
+- Une queue supplémentaire pour chaque évenement possédant l'annotation `@EvenementAvecRejeuPlanifie`, nommée `<application>.<classe>.rejeu`
+
+=== Producteur
+
+La production de message est réalisée en injectant le service `EvenementService` :
+
+```
+@Component
+@RequiredArgsConstructor
+public class MessageProducteur {
+
+    private final EvenementService evenementService;
+
+    @Scheduled(fixedRate = 1000L)
+    public void produireMessageAIntervalRegulier() {
+        final EvenementSimple evenementSimple = EvenementSimple.builder()
+            .message("message")
+            .build();
+
+        evenementService.produireEvenement(evenementSimple);
+    }
+}
+```
+
+Pour produire un évenement destiné à être exécuté une fois le délais d'attente écoulé :
+
+```
+evenementService.planifierRejeuEvenement(evenement);
+```
+
+=== Consommateur
+
+Déclarer un bean Spring annoté @EnvenementListener, disposant d'une (ou plusieurs) méthode(s) annotée(s) @EvenementHandler :
+
+```
+@Component
+@EvenementListener
+public class EvenementSimpleListener {
+
+    @EvenementHandler(threads = 3)
+    public void traiterEvenementSimple(final EvenementSimple evenementSimple) {
+        [...]
+    }
+}
+```
+
+== Réferences
+
+Mécanisme de retry avec délais inspiré de :
+https://programmerfriend.com/rabbit-mq-retry/
+
