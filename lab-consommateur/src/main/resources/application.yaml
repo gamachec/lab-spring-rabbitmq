@@ -1,12 +1,9 @@
-spring:
-  application:
-    name: consumer1
-  rabbitmq:
-    host: localhost
-    port: 5672
-    listener:
-      simple:
-        concurrency: 5
-    virtual-host: ${NAMESPACE:lab}
-    event-detection:
-      base-package: fr.maedhros.lab
+#spring:
+#  application:
+#    name: consumer1
+#  rabbitmq:
+#    host: localhost
+#    port: 5672
+#    listener:
+#      simple:
+#        concurrency: 5
